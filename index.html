@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>現場リスク分析アプリ - 7ステップ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        /* ヘッダー */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* プログレスバー */
+        .progress-container {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+
+        /* ステップナビゲーション */
+        .steps-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .step-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+
+        .step-dot.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .step-dot.completed {
+            background: #4caf50;
+            color: white;
+        }
+
+        /* メインコンテンツ */
+        .content {
+            padding: 40px;
+            min-height: 500px;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-header {
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        .step-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .step-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .guidance-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        /* フォーム要素 */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="date"]:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* チェックリスト */
+        .checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .checklist-item:hover {
+            background: #f0f1f2;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            margin-top: 4px;
+            cursor: pointer;
+        }
+
+        .checklist-item label {
+            margin: 0;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        /* リスク評価マトリックス */
+        .risk-matrix {
+            margin: 30px 0;
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .matrix-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .matrix-cell:hover {
+            transform: scale(1.05);
+        }
+
+        .matrix-cell.risk-low {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .matrix-cell.risk-medium {
+            background: #fff9c4;
+            color: #f57f17;
+        }
+
+        .matrix-cell.risk-high {
+            background: #ffccbc;
+            color: #e64a19;
+        }
+
+        .matrix-cell.risk-critical {
+            background: #ef5350;
+            color: white;
+        }
+
+        .matrix-cell.selected {
+            border-color: currentColor;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        .matrix-legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            font-size: 12px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+
+        /* リスク一覧 */
+        .risk-list {
+            margin: 20px 0;
+        }
+
+        .risk-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .risk-item:hover {
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .risk-item.selected {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+
+        .risk-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .risk-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .risk-level {
+            font-size: 12px;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 3px;
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .risk-level.high {
+            background: #ef5350;
+            color: white;
+        }
+
+        .risk-level.medium {
+            background: #ffa726;
+            color: white;
+        }
+
+        .risk-level.low {
+            background: #66bb6a;
+            color: white;
+        }
+
+        .risk-description {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* ボタングループ */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #d0d0d0;
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* サマリー画面 */
+        .summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .summary-section {
+            margin-bottom: 25px;
+        }
+
+        .summary-section h3 {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .summary-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .summary-item {
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        /* エクスポート機能 */
+        .export-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-export {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-export:hover {
+            background: #45a049;
+        }
+
+        /* 完了画面 */
+        .completion-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .completion-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .completion-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .completion-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .content {
+                padding: 25px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .step-title {
+                font-size: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .steps-nav {
+                overflow-x: auto;
+                padding: 5px 0;
+            }
+
+            .matrix-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <div class="header">
+            <h1>🎯 現場リスク分析アプリ</h1>
+            <p>7つのステップで体系的にリスクを分析し、適切な対策を講じます</p>
+        </div>
+
+        <!-- プログレス -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text"><span id="currentStep">1</span>/7 ステップ進行中</div>
+            <div class="steps-nav" id="stepsNav"></div>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <div class="content">
+            <!-- STEP 1: リスク分析の対象を明確にする -->
+            <div class="step active" id="step-1">
+                <div class="step-header">
+                    <div class="step-title">STEP1: リスク分析の対象を明確にする</div>
+                    <div class="step-description">
+                        何についてリスク分析するのか、テーマを明確にします。
+                        分析の逸脱や脱線を防止し、範囲を限定することが重要です。
+                    </div>
+                </div>
+
+                <div class="guidance-box">
+                    ✓ 新しい試みやプロジェクト、取引先からの課題を明確にしましょう<br>
+                    ✓ 広範囲な場合は、節目ごとにいくつかに分けて分析することもできます
+                </div>
+
+                <div class="form-group">
+                    <label>リスク分析の対象・プロジェクト名 *</label>
+                    <input type="text" id="projectName" placeholder="例：新製品ローンチ、施工現場での工事実施" required>
+                </div>
+
+                <div class="form-group">
+                    <label>目的・背景</label>
+                    <textarea id="projectBackground" placeholder="このプロジェクトの目的や背景を説明してください"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>分析対象の範囲</label>
+                    <textarea id="projectScope" placeholder="分析対象とする期間、部門、作業の範囲を明記してください"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>実施期間</label>
+                    <input type="date" id="projectStartDate" placeholder="開始日">
+                    <input type="date" id="projectEndDate" placeholder="終了日" style="margin-top: 10px;">
+                </div>
+
+                <div class="form-group">
+                    <label>関係者・チームメンバー</label>
+                    <textarea id="projectTeam" placeholder="このプロジェクトに関わるメンバーを記入してください"></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="nextStep()">次へ進む →</button>
+                </div>
+            </div>
+
+            <!-- STEP 2: 実施計画を確認する -->
+            <div class="step" id="step-2">
+                <div class="step-header">
+                    <div class="step-title">STEP2: 実施計画を確認する</div>
+                    <div class="step-description">
+                        プロジェクト全体の流れ・構成を時系列で整理します。
+                        全体像を把握することで、問題が発生しやすい領域を識別しやすくなります。
+                    </div>
+                </div>
+
+                <div class="guidance-box">
+                    ✓ プロジェクトの各段階・フェーズを時系列でリストアップ<br>
+                    ✓ 各段階に必要なリソース、担当者を明記<br>
+                    ✓ 依存関係や制約条件を把握しましょう
+                </div>
+
+                <div class="form-group">
+                    <label>実施計画の段階・フェーズ</label>
+                    <textarea id="implementationPlan" placeholder="例：
+準備段階（1-2月）
+  - 資材調達
+  - 人員配置
+  - 現場準備
+
+実施段階（3-6月）
+  - 本工事実施
+  - 品質管理
+
+完了段階（7月）
+  - 最終検査
+  - 引渡し"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>主要なリソース・制約条件</label>
+                    <textarea id="constraints" placeholder="例：
+- 予算上限：○○万円
+- 工期：60日以内
+- 天候に左右される
+- 特定の資材の在庫が限定的"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>重要な決定・ターニングポイント</label>
+                    <textarea id="keyDecisions" placeholder="分析対象期間中の重要な決定ポイントを記入してください"></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="previousStep()">← 前へ</button>
+                    <button class="btn btn-primary" onclick="nextStep()">次へ進む →</button>
+                </div>
+            </div>
+
+            <!-- STEP 3: 重点分析領域を設定する -->
+            <div class="step" id="step-3">
+                <div class="step-header">
+                    <div class="step-title">STEP3: 重点分析領域を設定する</div>
+                    <div class="step-description">
+                        実施計画の中で、やっかいな問題が多発しそうなエリアを特定します。
+                        ここに分析リソースを集中させることで、効率的にリスク対策ができます。
+                    </div>
+                </div>
+
+                <div class="guidance-box">
+                    ✓ 未経験な領域、複雑な要素、責任が不明確な箇所に着目<br>
+                    ✓ 環境変化に敏感な部分、時間的制約が厳しい部分<br>
+                    ✓ 失敗の影響が大きい領域を優先的に分析
+                </div>
+
+                <div class="form-group">
+                    <label>重点分析領域の設定（複数選択可）</label>
+                    <div class="checklist">
+                        <div class="checklist-item">
+                            <input type="checkbox" id="focus-1" value="未経験">
+                            <label for="focus-1">未経験な業務・技術領域</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="focus-2" value="複雑">
+                            <label for="focus-2">複雑な要素が存在する領域</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="focus-3" value="責任">
+                            <label for="focus-3">責任分担が不明確な領域</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="focus-4" value="環境">
+                            <label for="focus-4">環境変化に敏感な領域</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="focus-5" value="時間">
+                            <label for="focus-5">時間的制約が厳しい領域</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="focus-6" value="影響">
+                            <label for="focus-6">失敗の影響が大きい領域</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="focus-7" value="依存">
+                            <label for="focus-7">外部要因への依存が高い領域</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>重点分析領域の詳細説明</label>
+                    <textarea id="focusAreasDetail" placeholder="選択した領域について、なぜリスク分析が必要か、どのような懸念があるかを説明してください"></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="previousStep()">← 前へ</button>
+                    <button class="btn btn-primary" onclick="nextStep()">次へ進む →</button>
+                </div>
+            </div>
+
+            <!-- STEP 4: 具体的リスクを想定し評価する -->
+            <div class="step" id="step-4">
+                <div class="step-header">
+                    <div class="step-title">STEP4: 具体的リスクを想定し評価する</div>
+                    <div class="step-description">
+                        重点分析領域で起こりそうな具体的なリスクを想定し、
+                        発生確率と影響度で評価して、対策の優先順位を決めます。
+                    </div>
+                </div>
+
+                <div class="guidance-box">
+                    ✓ 過去の失敗経験も活かして、多角度からリスクを想定<br>
+                    ✓ 「そんなことは起きないはず」と否定せず、まずは全て出す<br>
+                    ✓ 発生確率 × 影響度で対策が必要なリスクを絞り込む
+                </div>
+
+                <div class="form-group">
+                    <label>予測されるリスク（複数入力可）</label>
+                    <div id="riskInputArea">
+                        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                            <input type="text" id="riskInput" placeholder="リスクを入力（例：人員不足、天候悪化、資材納期遅延）">
+                            <button class="btn btn-secondary" onclick="addRisk()" style="flex: 0 0 120px;">追加</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>リスク評価マトリックス（確率 × 影響度）</label>
+                    <div class="guidance-box">
+                        各リスクについて、発生確率（低→高）と影響度（小→大）を選択してください
+                    </div>
+
+                    <div id="riskEvaluationArea" style="margin-top: 20px;">
+                        <!-- リスク評価がここに動的に追加される -->
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="previousStep()">← 前へ</button>
+                    <button class="btn btn-primary" onclick="nextStep()">次へ進む →</button>
+                </div>
+            </div>
+
+            <!-- STEP 5: 原因を想定し予防対策を策定する -->
+            <div class="step" id="step-5">
+                <div class="step-header">
+                    <div class="step-title">STEP5: 原因を想定し予防対策を策定する</div>
+                    <div class="step-description">
+                        取り組むべきリスクについて、なぜそれが起きるのかという
+                        根本原因を掘り下げ、それを除去する予防対策を検討します。
+                    </div>
+                </div>
+
+                <div class="guidance-box">
+                    ✓ 「なぜ？」を何度も繰り返して根本原因を掘り下げる<br>
+                    ✓ 複数の原因がある場合は、影響度が高いものから対策<br>
+                    ✓ 現実的で効果的な対策を選別
+                </div>
+
+                <div id="preventiveMeasuresArea">
+                    <!-- 高リスクの各リスク対策がここに動的に追加される -->
+                </div>
+
+                <div class="form-group" style="margin-top: 30px;">
+                    <label>コントロール不可能なリスク（天変地異など）への記録</label>
+                    <textarea id="uncontrollableRisks" placeholder="予防対策できないリスクについては、発生時対策（STEP6）で対応することになります"></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="previousStep()">← 前へ</button>
+                    <button class="btn btn-primary" onclick="nextStep()">次へ進む →</button>
+                </div>
+            </div>
+
+            <!-- STEP 6: 発生時対策を策定する -->
+            <div class="step" id="step-6">
+                <div class="step-header">
+                    <div class="step-title">STEP6: 発生時対策を策定する</div>
+                    <div class="step-description">
+                        予測されたリスクが実際に発生した場合に、
+                        その悪影響を最小にするための対応策を事前に検討します。
+                    </div>
+                </div>
+
+                <div class="guidance-box">
+                    ✓ 予防対策だけでは完全には防げないと想定<br>
+                    ✓ 万が一の場合の初期対応、連絡体制を事前に準備<br>
+                    ✓ 第一次・第二次の影響まで考慮した対策を検討
+                </div>
+
+                <div id="emergencyMeasuresArea">
+                    <!-- 発生時対策がここに動的に追加される -->
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="previousStep()">← 前へ</button>
+                    <button class="btn btn-primary" onclick="nextStep()">次へ進む →</button>
+                </div>
+            </div>
+
+            <!-- STEP 7: 実施計画全体を再確認する -->
+            <div class="step" id="step-7">
+                <div class="step-header">
+                    <div class="step-title">STEP7: 実施計画全体を再確認する</div>
+                    <div class="step-description">
+                        リスク分析の最後は、全体をじっくり見直します。
+                        漏れやムダがないか、過剰な対策がないかを点検します。
+                    </div>
+                </div>
+
+                <div class="guidance-box">
+                    ✓ 分析に漏れ・抜けがないか確認<br>
+                    ✓ 対策が過剰になっていないか検討<br>
+                    ✓ 「なんとかいけそう」という確信が持てるまで検討
+                </div>
+
+                <div class="form-group">
+                    <label>全体的な評価・懸念事項</label>
+                    <textarea id="overallAssessment" placeholder="このプロジェクト全体について、まだ心配な点や検討が必要な箇所があれば記入してください"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>対策の適切さの確認</label>
+                    <div class="checklist">
+                        <div class="checklist-item">
+                            <input type="checkbox" id="check-1" value="完全">
+                            <label for="check-1">高リスク項目に対する予防・発生時対策が講じられている</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="check-2" value="経済">
+                            <label for="check-2">対策が現実的で、経済的に実行可能</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="check-3" value="責任">
+                            <label for="check-3">対策の実施責任者が明確に定められている</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="check-4" value="効果">
+                            <label for="check-4">対策の効果を測定する方法が定められている</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="check-5" value="確信">
+                            <label for="check-5">「なんとかいけそう」という確信が持てる</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>最終確認コメント</label>
+                    <textarea id="finalComments" placeholder="このプロジェクト実施に向けた最終的なコメントを記入してください"></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="previousStep()">← 前へ</button>
+                    <button class="btn btn-primary" onclick="completeSurvey()">分析を完了する ✓</button>
+                </div>
+            </div>
+
+            <!-- 完了画面 -->
+            <div class="step" id="step-8">
+                <div class="completion-screen">
+                    <div class="completion-icon">✅</div>
+                    <div class="completion-title">リスク分析が完了しました！</div>
+                    <div class="completion-message">
+                        <p>7つのステップを通じて、プロジェクトの包括的なリスク分析が完成しました。</p>
+                        <p>提示された予防対策と発生時対策を実施することで、</p>
+                        <p>プロジェクト成功の確度を大幅に高めることができます。</p>
+                    </div>
+
+                    <div class="summary">
+                        <div class="summary-section">
+                            <h3>📋 分析内容サマリー</h3>
+                            <div id="summaryContent"></div>
+                        </div>
+
+                        <div class="export-buttons">
+                            <button class="btn btn-export" onclick="exportAsMarkdown()">📝 Markdown形式で保存</button>
+                            <button class="btn btn-export" onclick="exportAsJSON()">📥 JSON形式で保存</button>
+                            <button class="btn btn-export" onclick="exportAsCSV()">📊 CSV形式で保存</button>
+                            <button class="btn btn-export" onclick="printReport()">🖨️ 印刷</button>
+                            <button class="btn btn-secondary" onclick="resetForm()" style="background: #2196f3; color: white;">🔄 新規分析を開始</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const TOTAL_STEPS = 7;
+        let currentStepNumber = 1;
+        let risksList = [];
+        let riskEvaluations = {};
+
+        // ステップナビゲーションの初期化
+        function initStepsNav() {
+            const nav = document.getElementById('stepsNav');
+            nav.innerHTML = '';
+            for (let i = 1; i <= TOTAL_STEPS; i++) {
+                const dot = document.createElement('div');
+                dot.className = `step-dot ${i === 1 ? 'active' : ''}`;
+                dot.textContent = i;
+                dot.onclick = () => goToStep(i);
+                nav.appendChild(dot);
+            }
+        }
+
+        // ステップ移動
+        function goToStep(stepNumber) {
+            if (stepNumber < 1 || stepNumber > TOTAL_STEPS + 1) return;
+
+            // 現在のステップを非表示
+            document.querySelector('.step.active').classList.remove('active');
+
+            // 新しいステップを表示
+            currentStepNumber = stepNumber;
+            if (stepNumber <= TOTAL_STEPS) {
+                document.getElementById(`step-${stepNumber}`).classList.add('active');
+            } else {
+                document.getElementById('step-8').classList.add('active');
+            }
+
+            updateProgress();
+        }
+
+        function nextStep() {
+            if (validateCurrentStep()) {
+                goToStep(currentStepNumber + 1);
+                window.scrollTo(0, 0);
+            } else {
+                alert('必須項目を入力してください');
+            }
+        }
+
+        function previousStep() {
+            goToStep(currentStepNumber - 1);
+            window.scrollTo(0, 0);
+        }
+
+        function updateProgress() {
+            const progress = (currentStepNumber / TOTAL_STEPS) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('currentStep').textContent = Math.min(currentStepNumber, TOTAL_STEPS);
+
+            // ステップドットを更新
+            document.querySelectorAll('.step-dot').forEach((dot, index) => {
+                const step = index + 1;
+                dot.classList.remove('active', 'completed');
+                if (step === currentStepNumber) {
+                    dot.classList.add('active');
+                } else if (step < currentStepNumber) {
+                    dot.classList.add('completed');
+                }
+            });
+        }
+
+        // バリデーション
+        function validateCurrentStep() {
+            switch(currentStepNumber) {
+                case 1:
+                    return document.getElementById('projectName').value.trim() !== '';
+                case 2:
+                    return document.getElementById('implementationPlan').value.trim() !== '';
+                case 3:
+                    return document.querySelectorAll('#step-3 input[type="checkbox"]:checked').length > 0;
+                case 4:
+                    return risksList.length > 0;
+                case 5:
+                    return true; // 任意
+                case 6:
+                    return true; // 任意
+                case 7:
+                    return true; // 任意
+                default:
+                    return true;
+            }
+        }
+
+        // リスク追加
+        function addRisk() {
+            const input = document.getElementById('riskInput');
+            const riskName = input.value.trim();
+
+            if (riskName === '') {
+                alert('リスクを入力してください');
+                return;
+            }
+
+            if (risksList.includes(riskName)) {
+                alert('既に追加されているリスクです');
+                return;
+            }
+
+            risksList.push(riskName);
+            riskEvaluations[riskName] = { probability: 2, impact: 2 };
+
+            input.value = '';
+            updateRiskDisplay();
+            updateEmergencyMeasures();
+        }
+
+        // リスク表示更新
+        function updateRiskDisplay() {
+            const area = document.getElementById('riskEvaluationArea');
+            area.innerHTML = '';
+
+            risksList.forEach((risk, index) => {
+                const section = document.createElement('div');
+                section.style.cssText = 'margin-bottom: 30px; padding: 15px; background: #f8f9fa; border-radius: 6px;';
+
+                section.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4 style="color: #333; font-size: 15px;">${risk}</h4>
+                        <button onclick="removeRisk('${risk}')" class="btn btn-secondary" style="flex: 0 0 auto; padding: 6px 12px; font-size: 12px;">削除</button>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 10px; font-size: 13px; color: #555;">発生確率（低 → 高）</label>
+                        <div class="matrix-grid" style="grid-template-columns: repeat(5, 1fr);">
+                            ${[1,2,3,4,5].map(p => `
+                                <div class="matrix-cell ${p <= 2 ? 'risk-low' : p <= 3 ? 'risk-medium' : 'risk-high'} ${riskEvaluations[risk].probability === p ? 'selected' : ''}"
+                                     onclick="setRiskEvaluation('${risk}', ${p}, null)"
+                                     style="cursor: pointer;">
+                                    ${p}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-weight: 600; margin-bottom: 10px; font-size: 13px; color: #555;">影響度（小 → 大）</label>
+                        <div class="matrix-grid" style="grid-template-columns: repeat(5, 1fr);">
+                            ${[1,2,3,4,5].map(i => `
+                                <div class="matrix-cell ${i <= 2 ? 'risk-low' : i <= 3 ? 'risk-medium' : 'risk-high'} ${riskEvaluations[risk].impact === i ? 'selected' : ''}"
+                                     onclick="setRiskEvaluation('${risk}', null, ${i})"
+                                     style="cursor: pointer;">
+                                    ${i}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 15px; padding: 12px; background: white; border-radius: 4px; font-size: 13px; color: #666;">
+                        <strong>総合リスク度:</strong> ${getRiskLevel(riskEvaluations[risk].probability, riskEvaluations[risk].impact)}
+                    </div>
+                `;
+
+                area.appendChild(section);
+            });
+
+            updatePreventiveMeasures();
+        }
+
+        function setRiskEvaluation(risk, probability, impact) {
+            if (probability !== null) {
+                riskEvaluations[risk].probability = probability;
+            }
+            if (impact !== null) {
+                riskEvaluations[risk].impact = impact;
+            }
+            updateRiskDisplay();
+        }
+
+        function removeRisk(risk) {
+            risksList = risksList.filter(r => r !== risk);
+            delete riskEvaluations[risk];
+            updateRiskDisplay();
+        }
+
+        function getRiskLevel(probability, impact) {
+            const score = probability * impact;
+            if (score >= 16) return '🔴 高リスク（要対策）';
+            if (score >= 9) return '🟠 中リスク';
+            if (score >= 4) return '🟡 低リスク';
+            return '🟢 極低リスク';
+        }
+
+        // 予防対策セクション更新
+        function updatePreventiveMeasures() {
+            const area = document.getElementById('preventiveMeasuresArea');
+            area.innerHTML = '';
+
+            const highRisks = risksList.filter(risk =>
+                riskEvaluations[risk].probability * riskEvaluations[risk].impact >= 9
+            );
+
+            if (highRisks.length === 0) {
+                area.innerHTML = '<p style="color: #999; font-style: italic;">中程度以上のリスクが登録されると、予防対策の入力欄が表示されます</p>';
+                return;
+            }
+
+            highRisks.forEach(risk => {
+                const section = document.createElement('div');
+                section.style.cssText = 'margin-bottom: 25px; padding: 20px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 4px;';
+
+                section.innerHTML = `
+                    <h4 style="color: #e65100; margin-bottom: 12px; font-size: 15px;">📌 "${risk}" への予防対策</h4>
+
+                    <div class="form-group">
+                        <label style="font-weight: 600; font-size: 13px;">根本原因の想定（なぜ？を繰り返す）</label>
+                        <textarea id="cause-${risk}" placeholder="原因を掘り下げて記入" style="min-height: 80px;"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-weight: 600; font-size: 13px;">予防対策（原因除去・確率低減）</label>
+                        <textarea id="prevention-${risk}" placeholder="具体的な予防対策を記入" style="min-height: 80px;"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-weight: 600; font-size: 13px;">実施責任者・期限</label>
+                        <input type="text" id="prevention-owner-${risk}" placeholder="誰が、いつまでに実施するか" style="width: 100%; margin-bottom: 8px;">
+                        <input type="date" id="prevention-deadline-${risk}" style="width: 100%;">
+                    </div>
+                `;
+
+                area.appendChild(section);
+            });
+        }
+
+        // 発生時対策セクション更新
+        function updateEmergencyMeasures() {
+            const area = document.getElementById('emergencyMeasuresArea');
+            area.innerHTML = '';
+
+            risksList.forEach(risk => {
+                const section = document.createElement('div');
+                section.style.cssText = 'margin-bottom: 25px; padding: 20px; background: #ffebee; border-left: 4px solid #f44336; border-radius: 4px;';
+
+                const score = riskEvaluations[risk].probability * riskEvaluations[risk].impact;
+
+                section.innerHTML = `
+                    <h4 style="color: #c62828; margin-bottom: 12px; font-size: 15px;">🚨 "${risk}" 発生時の対策</h4>
+
+                    <div class="form-group">
+                        <label style="font-weight: 600; font-size: 13px;">第一次の影響</label>
+                        <textarea id="emergency1-${risk}" placeholder="リスク発生直後の影響を記入" style="min-height: 60px;"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-weight: 600; font-size: 13px;">第二次の影響</label>
+                        <textarea id="emergency2-${risk}" placeholder="その後に波及する影響を記入" style="min-height: 60px;"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-weight: 600; font-size: 13px;">対応策・初期対応</label>
+                        <textarea id="emergency-action-${risk}" placeholder="リスク発生時の具体的な対応方法" style="min-height: 80px;"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-weight: 600; font-size: 13px;">連絡体制・報告ルート</label>
+                        <textarea id="emergency-contact-${risk}" placeholder="誰に、どのように報告するか" style="min-height: 60px;"></textarea>
+                    </div>
+                `;
+
+                area.appendChild(section);
+            });
+
+            if (risksList.length === 0) {
+                area.innerHTML = '<p style="color: #999; font-style: italic;">リスクが登録されると、発生時対策の入力欄が表示されます</p>';
+            }
+        }
+
+        // 分析完了
+        function completeSurvey() {
+            goToStep(8);
+            generateSummary();
+            window.scrollTo(0, 0);
+        }
+
+        // サマリー生成
+        function generateSummary() {
+            const summaryHTML = `
+                <div class="summary-item">
+                    <strong>プロジェクト名:</strong> ${document.getElementById('projectName').value}
+                </div>
+                <div class="summary-item">
+                    <strong>実施期間:</strong> ${document.getElementById('projectStartDate').value} ～ ${document.getElementById('projectEndDate').value}
+                </div>
+                <div class="summary-item">
+                    <strong>識別されたリスク数:</strong> ${risksList.length}件
+                </div>
+                <div class="summary-item">
+                    <strong>高リスク項目:</strong> ${risksList.filter(r => riskEvaluations[r].probability * riskEvaluations[r].impact >= 16).length}件
+                </div>
+                <div class="summary-item">
+                    <strong>中リスク項目:</strong> ${risksList.filter(r => {
+                        const s = riskEvaluations[r].probability * riskEvaluations[r].impact;
+                        return s >= 9 && s < 16;
+                    }).length}件
+                </div>
+                <div class="summary-item" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ccc;">
+                    <strong style="font-size: 14px;">📌 識別されたリスク一覧：</strong>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        ${risksList.map(risk => {
+                            const score = riskEvaluations[risk].probability * riskEvaluations[risk].impact;
+                            const level = score >= 16 ? '🔴' : score >= 9 ? '🟠' : '🟡';
+                            return `<li>${level} ${risk}</li>`;
+                        }).join('')}
+                    </ul>
+                </div>
+            `;
+
+            document.getElementById('summaryContent').innerHTML = summaryHTML;
+        }
+
+        // データエクスポート
+        function exportAsJSON() {
+            const data = {
+                projectName: document.getElementById('projectName').value,
+                projectBackground: document.getElementById('projectBackground').value,
+                projectScope: document.getElementById('projectScope').value,
+                projectStartDate: document.getElementById('projectStartDate').value,
+                projectEndDate: document.getElementById('projectEndDate').value,
+                projectTeam: document.getElementById('projectTeam').value,
+                implementationPlan: document.getElementById('implementationPlan').value,
+                constraints: document.getElementById('constraints').value,
+                keyDecisions: document.getElementById('keyDecisions').value,
+                risks: risksList,
+                evaluations: riskEvaluations,
+                focusAreas: Array.from(document.querySelectorAll('#step-3 input[type="checkbox"]:checked')).map(el => el.value),
+                timestamp: new Date().toISOString()
+            };
+
+            const jsonString = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            downloadFile(blob, `risk-analysis-${new Date().toISOString().split('T')[0]}.json`);
+        }
+
+        function exportAsCSV() {
+            let csv = 'リスク分析レポート\n\n';
+            csv += `プロジェクト名,${document.getElementById('projectName').value}\n`;
+            csv += `実施期間,${document.getElementById('projectStartDate').value}～${document.getElementById('projectEndDate').value}\n\n`;
+
+            csv += 'リスク,発生確率,影響度,リスク度\n';
+            risksList.forEach(risk => {
+                const prob = riskEvaluations[risk].probability;
+                const impact = riskEvaluations[risk].impact;
+                const score = prob * impact;
+                const level = score >= 16 ? '高リスク' : score >= 9 ? '中リスク' : '低リスク';
+                csv += `"${risk}",${prob},${impact},${level}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            downloadFile(blob, `risk-analysis-${new Date().toISOString().split('T')[0]}.csv`);
+        }
+
+        function exportAsMarkdown() {
+            const projectName = document.getElementById('projectName').value;
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+
+            // YAML Frontmatter
+            let markdown = `---
+title: "${projectName} - リスク分析レポート"
+date: ${now.toISOString()}
+project: "${projectName}"
+tags:
+  - リスク分析
+  - 7ステップ
+  - プロジェクト管理
+---
+
+# ${projectName} - リスク分析レポート
+
+## 📋 プロジェクト基本情報
+
+| 項目 | 内容 |
+|------|------|
+| **プロジェクト名** | ${projectName} |
+| **実施期間** | ${document.getElementById('projectStartDate').value} ～ ${document.getElementById('projectEndDate').value} |
+| **分析日** | ${dateStr} |
+
+### 目的・背景
+${document.getElementById('projectBackground').value || '記入なし'}
+
+### 分析対象の範囲
+${document.getElementById('projectScope').value || '記入なし'}
+
+### 関係者・チームメンバー
+${document.getElementById('projectTeam').value || '記入なし'}
+
+---
+
+## 📊 リスク分析サマリー
+
+### 識別されたリスク統計
+
+| 項目 | 数 |
+|------|-----|
+| **識別されたリスク総数** | ${risksList.length}件 |
+| **高リスク（16以上）** | ${risksList.filter(r => riskEvaluations[r].probability * riskEvaluations[r].impact >= 16).length}件 |
+| **中リスク（9～15）** | ${risksList.filter(r => {
+    const s = riskEvaluations[r].probability * riskEvaluations[r].impact;
+    return s >= 9 && s < 16;
+}).length}件 |
+| **低リスク（4～8）** | ${risksList.filter(r => {
+    const s = riskEvaluations[r].probability * riskEvaluations[r].impact;
+    return s >= 4 && s < 9;
+}).length}件 |
+
+---
+
+## 🎯 STEP2：実施計画
+
+### 実施フェーズ
+${document.getElementById('implementationPlan').value || '記入なし'}
+
+### 主要なリソース・制約条件
+${document.getElementById('constraints').value || '記入なし'}
+
+### 重要な決定・ターニングポイント
+${document.getElementById('keyDecisions').value || '記入なし'}
+
+---
+
+## 🔍 STEP3：重点分析領域
+
+${(() => {
+    const focusAreas = Array.from(document.querySelectorAll('#step-3 input[type="checkbox"]:checked')).map(el => el.value);
+    return focusAreas.length > 0
+        ? focusAreas.map(area => `- ${area}`).join('\n')
+        : '記入なし';
+})()}
+
+### 詳細説明
+${document.getElementById('focusAreasDetail').value || '記入なし'}
+
+---
+
+## 📌 STEP4：具体的なリスク評価
+
+### リスク評価マトリックス
+
+| リスク名 | 発生確率 | 影響度 | リスク度 | リスク水準 |
+|---------|--------|--------|--------|---------|
+${risksList.map(risk => {
+    const prob = riskEvaluations[risk].probability;
+    const impact = riskEvaluations[risk].impact;
+    const score = prob * impact;
+    const level = score >= 16 ? '🔴 高リスク' : score >= 9 ? '🟠 中リスク' : score >= 4 ? '🟡 低リスク' : '🟢 極低リスク';
+    return `| ${risk} | ${prob} | ${impact} | ${score} | ${level} |`;
+}).join('\n')}
+
+---
+
+## 🛡️ STEP5：予防対策
+
+${risksList.filter(r => riskEvaluations[r].probability * riskEvaluations[r].impact >= 9).map(risk => `
+### "${risk}" への予防対策
+
+**根本原因の想定：**
+\`\`\`
+${document.getElementById(`cause-${risk}`)?.value || '記入なし'}
+\`\`\`
+
+**予防対策：**
+\`\`\`
+${document.getElementById(`prevention-${risk}`)?.value || '記入なし'}
+\`\`\`
+
+**実施責任者・期限：**
+- 責任者: ${document.getElementById(`prevention-owner-${risk}`)?.value || '未指定'}
+- 期限: ${document.getElementById(`prevention-deadline-${risk}`)?.value || '未指定'}
+
+---
+`).join('')}
+
+${risksList.filter(r => riskEvaluations[r].probability * riskEvaluations[r].impact >= 9).length === 0 ? '中程度以上のリスクはありません。' : ''}
+
+### コントロール不可能なリスク
+${document.getElementById('uncontrollableRisks').value || '記入なし'}
+
+---
+
+## 🚨 STEP6：発生時対策
+
+${risksList.map(risk => `
+### "${risk}" 発生時の対策
+
+**第一次の影響：**
+\`\`\`
+${document.getElementById(`emergency1-${risk}`)?.value || '記入なし'}
+\`\`\`
+
+**第二次の影響：**
+\`\`\`
+${document.getElementById(`emergency2-${risk}`)?.value || '記入なし'}
+\`\`\`
+
+**対応策・初期対応：**
+\`\`\`
+${document.getElementById(`emergency-action-${risk}`)?.value || '記入なし'}
+\`\`\`
+
+**連絡体制・報告ルート：**
+\`\`\`
+${document.getElementById(`emergency-contact-${risk}`)?.value || '記入なし'}
+\`\`\`
+
+---
+`).join('')}
+
+---
+
+## ✅ STEP7：実施計画全体の再確認
+
+### 全体的な評価・懸念事項
+${document.getElementById('overallAssessment').value || '記入なし'}
+
+### 対策の適切さ確認
+
+| 確認項目 | 状態 |
+|---------|-----|
+| 高リスク項目への対策が講じられている | ${document.getElementById('check-1')?.checked ? '✅' : '☐'} |
+| 対策が現実的で、経済的に実行可能 | ${document.getElementById('check-2')?.checked ? '✅' : '☐'} |
+| 対策の実施責任者が明確 | ${document.getElementById('check-3')?.checked ? '✅' : '☐'} |
+| 対策の効果を測定する方法がある | ${document.getElementById('check-4')?.checked ? '✅' : '☐'} |
+| 「なんとかいけそう」という確信が持てる | ${document.getElementById('check-5')?.checked ? '✅' : '☐'} |
+
+### 最終確認コメント
+${document.getElementById('finalComments').value || '記入なし'}
+
+---
+
+## 📚 参考資料
+
+- 分析フレームワーク: [[問題解決/リスク分析_七つのステップ_文字おこし]]
+- 使用ガイド: [[risk-analysis-app-guide]]
+- クイックリファレンス: [[risk-analysis-quick-reference]]
+
+---
+
+**このレポートは、現場リスク分析アプリで生成されました。**
+*定期的に更新・見直しを行い、リスク対策の実行状況を確認してください。*
+`;
+
+            const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8;' });
+            const filename = `${projectName}_リスク分析_${dateStr}.md`;
+            downloadFile(blob, filename);
+        }
+
+        function downloadFile(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function resetForm() {
+            if (confirm('すべてのデータがリセットされます。よろしいですか？')) {
+                location.reload();
+            }
+        }
+
+        // 初期化
+        window.addEventListener('load', () => {
+            initStepsNav();
+            updateProgress();
+        });
+    </script>
+</body>
+</html>
